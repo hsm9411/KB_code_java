@@ -1,0 +1,22 @@
+package ch09.sec07.exam02;
+
+public class Home {
+    //필드에 익명 구현 객체 대입
+    RemoteControl rc = new RemoteControl() {
+        @Override
+        public void turnOn() {
+            System.out.println("TV turned on");
+        }
+
+        @Override
+        public void turnOff() {
+            System.out.println("TV turned off");
+        }
+    };
+
+//메소드(필드 이용)
+    public void use1() {
+        rc.turnOn();
+        rc.turnOff();
+    }
+}

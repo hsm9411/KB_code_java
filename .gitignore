@@ -1,0 +1,21 @@
+# Java build output
+*.class
+out/
+bin/
+build/
+target/
+
+# IDE project files
+.idea/
+*.iml
+.vscode/
+
+# Local run output and logs
+*.log
+out.txt
+err.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
