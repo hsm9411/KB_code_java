@@ -12,15 +12,37 @@ import java.util.List;
 import java.util.Optional;
 
 public class TravelDao {
-    private static final String FILE_PATH = "src/main/resources/travel.csv";
+    private static final String FILE_NAME = "travel.csv";
+    private static final int PAGE_SIZE = 10;
+    private static final java.util.Comparator<Travel> BY_DISTRICT_TITLE =
+            java.util.Comparator.comparing(Travel::getDistrict).thenComparing(Travel::getTitle);
     private List<Travel> travels = new ArrayList<>();
 
     public TravelDao() {
+        ensureCsvExists();
         load();
     }
 
+    // JAR 배포 시 최초 실행이면 내장 리소스를 현재 디렉토리에 복사
+    private void ensureCsvExists() {
+        File file = new File(FILE_NAME);
+        if (file.exists()) return;
+        try (InputStream is = TravelDao.class.getResourceAsStream("/travel.csv")) {
+            if (is == null) {
+                System.err.println("내장 리소스에서 travel.csv를 찾을 수 없습니다.");
+                return;
+            }
+            try (OutputStream os = new FileOutputStream(file)) {
+                is.transferTo(os);
+            }
+            System.out.println("travel.csv를 현재 디렉토리에 초기화했습니다.");
+        } catch (IOException e) {
+            System.err.println("travel.csv 초기화 중 오류: " + e.getMessage());
+        }
+    }
+
     public void load() {
-        try (Reader reader = new InputStreamReader(new FileInputStream(FILE_PATH), StandardCharsets.UTF_8)) {
+        try (Reader reader = new InputStreamReader(new FileInputStream(FILE_NAME), StandardCharsets.UTF_8)) {
             travels = new CsvToBeanBuilder<Travel>(reader)
                     .withType(Travel.class)
                     .build()
@@ -32,7 +54,7 @@ public class TravelDao {
     }
 
     public void save() {
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(FILE_PATH), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(FILE_NAME), StandardCharsets.UTF_8)) {
             StatefulBeanToCsv<Travel> beanToCsv = new StatefulBeanToCsvBuilder<Travel>(writer).build();
             beanToCsv.write(travels);
         } catch (Exception e) {
@@ -42,36 +64,29 @@ public class TravelDao {
 
     public List<Travel> findAll() {
         return travels.stream()
-                .sorted((t1, t2) -> {
-                    int res = t1.getDistrict().compareTo(t2.getDistrict());
-                    if (res == 0) {
-                        res = t1.getTitle().compareTo(t2.getTitle());
-                    }
-                    return res;
-                })
+                .sorted(BY_DISTRICT_TITLE)
                 .toList();
     }
 
     public List<Travel> getPage(int page) {
         List<Travel> sortedList = findAll();
-        int pageSize = 10;
-        int fromIndex = (page - 1) * pageSize;
+        int fromIndex = (page - 1) * PAGE_SIZE;
         if (fromIndex < 0 || fromIndex >= sortedList.size()) {
             return new ArrayList<>();
         }
-        int toIndex = Math.min(fromIndex + pageSize, sortedList.size());
+        int toIndex = Math.min(fromIndex + PAGE_SIZE, sortedList.size());
         return new ArrayList<>(sortedList.subList(fromIndex, toIndex));
     }
 
     public int getTotalPages() {
-        int pageSize = 10;
-        return (int) Math.ceil((double) travels.size() / pageSize);
+        return (int) Math.ceil((double) travels.size() / PAGE_SIZE);
     }
 
     public List<Travel> findByDistrict(String district) {
+        String lower = district.toLowerCase();
         return travels.stream()
-                .filter(t -> t.getDistrict().equals(district))
-                .sorted((t1, t2) -> t1.getTitle().compareTo(t2.getTitle()))
+                .filter(t -> t.getDistrict().toLowerCase().contains(lower))
+                .sorted(java.util.Comparator.comparing(Travel::getTitle))
                 .toList();
     }
 
@@ -80,13 +95,7 @@ public class TravelDao {
         return travels.stream()
                 .filter(t -> (t.getTitle() != null && t.getTitle().toLowerCase().contains(lowerKeyword)) ||
                              (t.getDescription() != null && t.getDescription().toLowerCase().contains(lowerKeyword)))
-                .sorted((t1, t2) -> {
-                    int res = t1.getDistrict().compareTo(t2.getDistrict());
-                    if (res == 0) {
-                        res = t1.getTitle().compareTo(t2.getTitle());
-                    }
-                    return res;
-                })
+                .sorted(BY_DISTRICT_TITLE)
                 .toList();
     }
 

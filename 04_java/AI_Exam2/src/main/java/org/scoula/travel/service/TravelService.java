@@ -43,7 +43,7 @@ public class TravelService {
     }
 
     public void getByDistrict() {
-        String district = Input.getLine("검역할 권역(예: 수도권, 충청권...)> ");
+        String district = Input.getLine("검색할 권역(예: 수도권, 충청권...)> ");
         List<Travel> travels = dao.findByDistrict(district);
         printList(travels);
         System.out.println("총 " + travels.size() + "건의 데이터가 검색되었습니다.");
@@ -84,6 +84,29 @@ public class TravelService {
         Travel travel = new Travel(0, district, title, description, address, phone);
         dao.create(travel);
         System.out.println("여행지가 성공적으로 추가되었습니다.");
+    }
+
+    public void update() {
+        int no = Input.getInt("수정할 여행지 번호: ");
+        dao.findById(no).ifPresentOrElse(
+                t -> {
+                    System.out.println("[여행지 수정] (엔터 입력 시 기존 값 유지)");
+                    String district = Input.getLine("권역 [" + t.getDistrict() + "]: ");
+                    if (!district.isEmpty()) t.setDistrict(district);
+                    String title = Input.getLine("제목 [" + t.getTitle() + "]: ");
+                    if (!title.isEmpty()) t.setTitle(title);
+                    String description = Input.getLine("설명 [" + t.getDescription() + "]: ");
+                    if (!description.isEmpty()) t.setDescription(description);
+                    String address = Input.getLine("주소 [" + t.getAddress() + "]: ");
+                    if (!address.isEmpty()) t.setAddress(address);
+                    String phone = Input.getLine("전화 [" + t.getPhone() + "]: ");
+                    if (!phone.isEmpty()) t.setPhone(phone);
+                    if (dao.update(t)) {
+                        System.out.println(no + "번 여행지가 성공적으로 수정되었습니다.");
+                    }
+                },
+                () -> System.out.println("해당 번호의 여행지가 존재하지 않습니다.")
+        );
     }
 
     public void delete() {

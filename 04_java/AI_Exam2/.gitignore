@@ -41,3 +41,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# JAR 실행 시 자동 생성되는 데이터 파일 (루트 실행 방지)
+/travel.csv
+
+# Claude Code 세션 메모리 (개인 설정)
+.claude/

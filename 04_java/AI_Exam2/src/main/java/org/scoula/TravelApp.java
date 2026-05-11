@@ -16,6 +16,7 @@ public class TravelApp extends App {
         menu.add(new MenuItem("키워드 검색", service::search));
         menu.add(new MenuItem("상세보기", service::getDetail));
         menu.add(new MenuItem("여행지 추가", service::add));
+        menu.add(new MenuItem("여행지 수정", service::update));
         menu.add(new MenuItem("여행지 삭제", service::delete));
         menu.add(new MenuItem("종료", new ExitCommand()));
     }

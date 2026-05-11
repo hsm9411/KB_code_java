@@ -16,6 +16,7 @@ public abstract class App {
     public final void run() {
         init();
         greeting();
+        Runtime.getRuntime().addShutdownHook(new Thread(this::goodbye));
         while (true) {
             System.out.println("----------------------------------------------------------------------");
             menu.print();
